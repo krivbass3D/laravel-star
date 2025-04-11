@@ -45,23 +45,25 @@
 
                     <!-- Cart and Auth -->
                     <div class="flex items-center space-x-4">
-                        <a href="#" class="flex items-center hover:text-gray-300">
+                        <Link :href="ROUTES.CART" class="flex items-center hover:text-gray-300">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                             <span class="ml-1">Cart</span>
-                            <span class="ml-1 bg-red-500 rounded-full px-2 text-sm">1</span>
-                        </a>
+                            <span v-if="cart.totalItems > 0" class="ml-1 bg-red-500 rounded-full px-2 text-sm">
+                                {{ cart.totalItems }}
+                            </span>
+                        </Link>
                         <template v-if="!$page.props.auth.user">
-                            <Link :href="route('login')" class="hover:text-gray-300">
+                            <Link :href="ROUTES.LOGIN" class="hover:text-gray-300">
                                 Login
                             </Link>
-                            <Link :href="route('register')" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-md">
+                            <Link :href="ROUTES.REGISTER" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-md">
                                 Register now
                             </Link>
                         </template>
                         <template v-else>
-                            <Link :href="route('dashboard')" class="hover:text-gray-300">
+                            <Link :href="ROUTES.DASHBOARD" class="hover:text-gray-300">
                                 Dashboard
                             </Link>
                             <button @click="logout" class="hover:text-gray-300">
@@ -92,16 +94,15 @@
         <!-- Main Content -->
         <main class="container mx-auto px-4 py-8">
             <!-- Products Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 <div v-for="product in products.data" :key="product.id" 
                      class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                    <img :src="product.image || 'https://picsum.photos/300/200'" 
-                         :alt="product.name"
-                         class="w-full h-48 object-cover">
+                    <img :src="product.image" :alt="product.name" class="w-full h-48 object-cover">
                     <div class="p-4">
-                        <h3 class="font-medium text-lg mb-2 line-clamp-2">{{ product.name }}</h3>
-                        <p class="text-lg font-bold text-blue-600">{{ formatPrice(product.price) }}</p>
-                        <button class="mt-4 w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors">
+                        <h3 class="text-lg font-semibold">{{ product.name }}</h3>
+                        <p class="text-gray-600">€{{ product.price }}</p>
+                        <button @click="addToCart(product)" 
+                                class="mt-4 w-full bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">
                             Add to Cart
                         </button>
                     </div>
@@ -122,6 +123,8 @@ import { Head } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { useCartStore } from '@/Stores/cartStore';
+import { ROUTES } from '../constants/routes';
 
 const showMoreCategories = ref(false);
 
@@ -130,6 +133,8 @@ const props = defineProps({
     products: Object,
     filters: Object
 });
+
+const cart = useCartStore();
 
 // Закрываем выпадающее меню при клике вне его
 const closeMoreCategories = (e) => {
@@ -172,6 +177,12 @@ const clearFilters = () => {
 
 const logout = () => {
     router.post(route('logout'));
+};
+
+const addToCart = (product) => {
+    cart.addToCart(product);
+    // Добавим уведомление об успешном добавлении
+    alert('Product added to cart!');
 };
 </script>
 

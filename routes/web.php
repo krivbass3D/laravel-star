@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -27,6 +28,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/cart', function () {
+        return Inertia::render('Cart');
+    })->name('cart');
+    Route::get('/checkout', function () {
+        return Inertia::render('Checkout');
+    })->name('checkout');
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
 });
 
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog');
