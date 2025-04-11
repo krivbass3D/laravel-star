@@ -1,10 +1,34 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 
-const model = defineModel({
-    type: String,
-    required: true,
+defineProps({
+    modelValue: {
+        type: [String, Number],
+        default: ''
+    },
+    type: {
+        type: String,
+        default: 'text'
+    },
+    id: {
+        type: String,
+        required: true
+    },
+    class: {
+        type: String,
+        default: ''
+    },
+    required: {
+        type: Boolean,
+        default: false
+    },
+    autocomplete: {
+        type: String,
+        default: ''
+    }
 });
+
+defineEmits(['update:modelValue']);
 
 const input = ref(null);
 
@@ -19,8 +43,13 @@ defineExpose({ focus: () => input.value.focus() });
 
 <template>
     <input
-        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-        v-model="model"
+        :type="type"
+        :id="id"
+        :class="class"
+        :value="modelValue"
+        :required="required"
+        :autocomplete="autocomplete"
+        @input="$emit('update:modelValue', $event.target.value)"
         ref="input"
     />
 </template>

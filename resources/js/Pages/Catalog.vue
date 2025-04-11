@@ -81,11 +81,15 @@
                 <div class="flex justify-between items-center">
                     <input type="text" 
                            placeholder="Search for the products" 
+                           v-model="searchQuery"
+                           @input="handleSearch"
                            class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <select class="ml-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option>Last Modified at the top</option>
-                        <option>Price: Low to High</option>
-                        <option>Price: High to Low</option>
+                    <select class="ml-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            v-model="sortOption"
+                            @change="handleSort">
+                        <option value="newest">Last Modified at the top</option>
+                        <option value="price_low">Price: Low to High</option>
+                        <option value="price_high">Price: High to Low</option>
                     </select>
                 </div>
             </div>
@@ -127,6 +131,9 @@ import { useCartStore } from '@/Stores/cartStore';
 import { ROUTES } from '../constants/routes';
 
 const showMoreCategories = ref(false);
+const searchQuery = ref('');
+const searchTimeout = ref(null);
+const sortOption = ref('newest');
 
 const props = defineProps({
     categories: Array,
@@ -146,6 +153,12 @@ const closeMoreCategories = (e) => {
 // Добавляем слушатель событий при монтировании компонента
 onMounted(() => {
     document.addEventListener('click', closeMoreCategories);
+    if (props.filters.search) {
+        searchQuery.value = props.filters.search;
+    }
+    if (props.filters.sort) {
+        sortOption.value = props.filters.sort;
+    }
 });
 
 // Удаляем слушатель при размонтировании
@@ -183,6 +196,26 @@ const addToCart = (product) => {
     cart.addToCart(product);
     // Добавим уведомление об успешном добавлении
     alert('Product added to cart!');
+};
+
+const handleSort = () => {
+    router.get(route('home'), { sort: sortOption.value }, {
+        preserveState: true,
+        preserveScroll: true
+    });
+};
+
+const handleSearch = () => {
+    clearTimeout(searchTimeout.value);
+    searchTimeout.value = setTimeout(() => {
+        router.get(route('home'), { 
+            search: searchQuery.value,
+            sort: sortOption.value 
+        }, {
+            preserveState: true,
+            preserveScroll: true
+        });
+    }, 300);
 };
 </script>
 

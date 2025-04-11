@@ -15,6 +15,31 @@ class CatalogController extends Controller
             $query->where('category_id', $request->category);
         }
 
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Добавляем сортировку
+        if ($request->has('sort')) {
+            switch ($request->sort) {
+                case 'price_low':
+                    $query->orderBy('price', 'asc');
+                    break;
+                case 'price_high':
+                    $query->orderBy('price', 'desc');
+                    break;
+                case 'newest':
+                    $query->orderBy('created_at', 'desc');
+                    break;
+            }
+        } else {
+            $query->orderBy('created_at', 'desc'); // Сортировка по умолчанию
+        }
+
         $categories = \App\Models\Category::with('products')->get();
         $products = $query->paginate(12);
 
@@ -45,7 +70,7 @@ class CatalogController extends Controller
         return Inertia::render('Catalog', [
             'categories' => $categories,
             'products' => $products,
-            'filters' => $request->only(['category'])
+            'filters' => $request->only(['category', 'search', 'sort'])
         ]);
     }
 }
