@@ -19,11 +19,17 @@ const routes = [
         name: 'Register',
         component: () => import('../Pages/Auth/RegisterView.vue'),
         meta: { guest: true }
+    },
+    {
+        path: '/catalog',
+        name: 'Catalog',
+        component: () => import('../Pages/Catalog.vue'),
+        meta: { requiresAuth: true }
     }
 ];
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHistory(import.meta.env.BASE_URL),
     routes
 });
 
