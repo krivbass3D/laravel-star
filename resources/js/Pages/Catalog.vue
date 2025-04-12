@@ -104,7 +104,7 @@
                 <!-- Фильтр по цене -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Price (€{{ priceRange.min }} - €{{ priceRange.max }})
+                        Price (€{{ priceFilter.min.toFixed(2) }} - €{{ priceFilter.max.toFixed(2) }})
                     </label>
                     <div class="relative w-full h-2 bg-gray-200 rounded mt-6 mb-6">
                         <!-- Полоса выбранного диапазона -->
@@ -118,7 +118,7 @@
                         
                         <!-- Левый ползунок -->
                         <div 
-                            class="absolute w-4 h-4 bg-white border-2 border-purple-500 rounded-full -mt-1.5 transform -translate-x-1/2 cursor-pointer"
+                            class="absolute w-4 h-4 bg-white border-2 border-purple-500 rounded-full -mt-1.5 transform -translate-x-1/2 cursor-pointer hover:scale-110 transition-transform"
                             :style="{
                                 left: `${((priceFilter.min - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`
                             }"
@@ -126,7 +126,7 @@
                         
                         <!-- Правый ползунок -->
                         <div 
-                            class="absolute w-4 h-4 bg-white border-2 border-purple-500 rounded-full -mt-1.5 transform -translate-x-1/2 cursor-pointer"
+                            class="absolute w-4 h-4 bg-white border-2 border-purple-500 rounded-full -mt-1.5 transform -translate-x-1/2 cursor-pointer hover:scale-110 transition-transform"
                             :style="{
                                 left: `${((priceFilter.max - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`
                             }"
@@ -138,8 +138,9 @@
                             v-model.number="priceFilter.min" 
                             :min="priceRange.min" 
                             :max="priceRange.max"
-                            step="1"
+                            :step="0.01"
                             class="range-input range-input-min"
+                            @input="updatePriceFilter"
                             @change="applyPriceFilter"
                         >
                         <input 
@@ -147,14 +148,15 @@
                             v-model.number="priceFilter.max" 
                             :min="priceRange.min" 
                             :max="priceRange.max"
-                            step="1"
+                            :step="0.01"
                             class="range-input range-input-max"
+                            @input="updatePriceFilter"
                             @change="applyPriceFilter"
                         >
                     </div>
                     <div class="flex justify-between mt-2">
-                        <span class="text-sm text-gray-600">€{{ priceFilter.min }}</span>
-                        <span class="text-sm text-gray-600">€{{ priceFilter.max }}</span>
+                        <span class="text-sm text-gray-600">€{{ priceFilter.min.toFixed(2) }}</span>
+                        <span class="text-sm text-gray-600">€{{ priceFilter.max.toFixed(2) }}</span>
                     </div>
                 </div>
 
@@ -280,6 +282,18 @@ const filterByCategory = (categoryId) => {
     });
 };
 
+// Обработчик изменения значений слайдера
+const updatePriceFilter = () => {
+    // Проверяем, чтобы минимальная цена не была больше максимальной
+    if (priceFilter.value.min > priceFilter.value.max) {
+        if (priceFilter.value.min > props.priceRange.max) {
+            priceFilter.value.min = props.priceRange.max;
+        }
+        priceFilter.value.max = priceFilter.value.min;
+    }
+};
+
+// Применяем фильтр только когда пользователь отпускает ползунок
 const applyPriceFilter = () => {
     router.get(route('home'), {
         ...props.filters,
@@ -334,15 +348,6 @@ const handleSearch = () => {
         });
     }, 300);
 };
-
-// Следим за изменениями фильтра цены
-watch([() => priceFilter.value.min, () => priceFilter.value.max], () => {
-    if (priceFilter.value.min > priceFilter.value.max) {
-        const temp = priceFilter.value.min;
-        priceFilter.value.min = priceFilter.value.max;
-        priceFilter.value.max = temp;
-    }
-}, { deep: true });
 </script>
 
 <style>
@@ -362,6 +367,8 @@ watch([() => priceFilter.value.min, () => priceFilter.value.max], () => {
     background: none;
     top: 0;
     left: 0;
+    margin: 0;
+    z-index: 3;
 }
 
 .range-input::-webkit-slider-thumb {
@@ -374,6 +381,8 @@ watch([() => priceFilter.value.min, () => priceFilter.value.max], () => {
     cursor: pointer;
     border: none;
     margin-top: -4px;
+    position: relative;
+    z-index: 4;
 }
 
 .range-input::-moz-range-thumb {
@@ -385,6 +394,8 @@ watch([() => priceFilter.value.min, () => priceFilter.value.max], () => {
     cursor: pointer;
     border: none;
     margin-top: -4px;
+    position: relative;
+    z-index: 4;
 }
 
 .range-input::-webkit-slider-runnable-track,
@@ -396,10 +407,10 @@ watch([() => priceFilter.value.min, () => priceFilter.value.max], () => {
 }
 
 .range-input-min {
-    z-index: 2;
+    z-index: 4;
 }
 
 .range-input-max {
-    z-index: 1;
+    z-index: 3;
 }
 </style> 
