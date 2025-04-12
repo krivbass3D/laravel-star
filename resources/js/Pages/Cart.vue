@@ -1,10 +1,27 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { useCartStore } from '../Stores/cartStore';
 import { ROUTES } from '../constants/routes';
 import ShopLayout from '@/Layouts/ShopLayout.vue';
 
 const cart = useCartStore();
+
+// Отладочная информация
+console.log('Cart items:', cart.items);
+console.log('Total price:', cart.totalPrice);
+
+const removeFromCart = (productId) => {
+    cart.removeFromCart(productId);
+};
+
+const totalPrice = computed(() => {
+    const total = cart.items.reduce((sum, item) => {
+        return sum + (parseFloat(item.price) * item.quantity);
+    }, 0);
+    console.log('Calculated total:', total);
+    return total.toFixed(2);
+});
 </script>
 
 <template>
@@ -39,7 +56,10 @@ const cart = useCartStore();
                                     <div class="flex-1 flex items-end justify-between text-sm">
                                         <p class="text-gray-500">Qty {{ item.quantity }}</p>
                                         <div class="flex">
-                                            <button @click="cart.removeItem(item.id)" class="font-medium text-indigo-600 hover:text-indigo-500">
+                                            <button 
+                                                @click="removeFromCart(item.id)"
+                                                class="text-red-600 hover:text-red-800"
+                                            >
                                                 Remove
                                             </button>
                                         </div>
@@ -52,7 +72,7 @@ const cart = useCartStore();
                     <div class="border-t border-gray-200 py-6 px-4 sm:px-6">
                         <div class="flex justify-between text-base font-medium text-gray-900">
                             <p>Subtotal</p>
-                            <p>${{ cart.totalPrice }}</p>
+                            <p>${{ totalPrice }}</p>
                         </div>
                         <p class="mt-0.5 text-sm text-gray-500">Shipping and taxes calculated at checkout.</p>
                         <div class="mt-6">

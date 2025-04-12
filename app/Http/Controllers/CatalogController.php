@@ -15,6 +15,13 @@ class CatalogController extends Controller
             $query->where('category_id', $request->category);
         }
 
+        if ($request->has('min_price')) {
+            $query->where('price', '>=', $request->min_price * 100);
+        }
+        if ($request->has('max_price')) {
+            $query->where('price', '<=', $request->max_price * 100);
+        }
+
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -23,7 +30,6 @@ class CatalogController extends Controller
             });
         }
 
-        // Добавляем сортировку
         if ($request->has('sort')) {
             switch ($request->sort) {
                 case 'price_low':
@@ -37,16 +43,16 @@ class CatalogController extends Controller
                     break;
             }
         } else {
-            $query->orderBy('created_at', 'desc'); // Сортировка по умолчанию
+            $query->orderBy('created_at', 'desc');
         }
 
         $categories = \App\Models\Category::with('products')->get();
         $products = $query->paginate(12);
 
-        // Конвертируем цены в евро (1 евро = 100 рублей)
+        $priceRange = \App\Models\Product::selectRaw('MIN(price) as min_price, MAX(price) as max_price')->first();
+
         $products->getCollection()->transform(function ($product) {
             $product->price = round($product->price / 100, 2);
-            // Добавляем заглушки для изображений в зависимости от категории
             $categoryColors = [
                 'electronics' => '2563eb',
                 'clothing' => 'dc2626',
@@ -70,7 +76,11 @@ class CatalogController extends Controller
         return Inertia::render('Catalog', [
             'categories' => $categories,
             'products' => $products,
-            'filters' => $request->only(['category', 'search', 'sort'])
+            'filters' => $request->only(['category', 'search', 'sort', 'min_price', 'max_price']),
+            'priceRange' => [
+                'min' => round($priceRange->min_price / 100, 2),
+                'max' => round($priceRange->max_price / 100, 2)
+            ]
         ]);
     }
 }

@@ -97,6 +97,90 @@
 
         <!-- Main Content -->
         <main class="container mx-auto px-4 py-8">
+            <!-- Фильтры -->
+            <div class="mb-8 bg-white p-4 rounded-lg shadow">
+                <h2 class="text-lg font-semibold mb-4">Filters</h2>
+                
+                <!-- Фильтр по цене -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Price (€{{ priceRange.min }} - €{{ priceRange.max }})
+                    </label>
+                    <div class="relative w-full h-2 bg-gray-200 rounded mt-6 mb-6">
+                        <!-- Полоса выбранного диапазона -->
+                        <div 
+                            class="absolute h-full bg-purple-500"
+                            :style="{
+                                left: `${((priceFilter.min - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`,
+                                right: `${100 - ((priceFilter.max - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`
+                            }"
+                        ></div>
+                        
+                        <!-- Левый ползунок -->
+                        <div 
+                            class="absolute w-4 h-4 bg-white border-2 border-purple-500 rounded-full -mt-1.5 transform -translate-x-1/2 cursor-pointer"
+                            :style="{
+                                left: `${((priceFilter.min - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`
+                            }"
+                        ></div>
+                        
+                        <!-- Правый ползунок -->
+                        <div 
+                            class="absolute w-4 h-4 bg-white border-2 border-purple-500 rounded-full -mt-1.5 transform -translate-x-1/2 cursor-pointer"
+                            :style="{
+                                left: `${((priceFilter.max - priceRange.min) / (priceRange.max - priceRange.min)) * 100}%`
+                            }"
+                        ></div>
+                        
+                        <!-- Скрытые инпуты для функциональности -->
+                        <input 
+                            type="range" 
+                            v-model.number="priceFilter.min" 
+                            :min="priceRange.min" 
+                            :max="priceRange.max"
+                            step="1"
+                            class="range-input range-input-min"
+                            @change="applyPriceFilter"
+                        >
+                        <input 
+                            type="range" 
+                            v-model.number="priceFilter.max" 
+                            :min="priceRange.min" 
+                            :max="priceRange.max"
+                            step="1"
+                            class="range-input range-input-max"
+                            @change="applyPriceFilter"
+                        >
+                    </div>
+                    <div class="flex justify-between mt-2">
+                        <span class="text-sm text-gray-600">€{{ priceFilter.min }}</span>
+                        <span class="text-sm text-gray-600">€{{ priceFilter.max }}</span>
+                    </div>
+                </div>
+
+                <!-- Сортировка -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
+                    <select 
+                        v-model="sortOption" 
+                        @change="handleSort"
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    >
+                        <option value="newest">Last Modified at the top</option>
+                        <option value="price_low">Price: Low to High</option>
+                        <option value="price_high">Price: High to Low</option>
+                    </select>
+                </div>
+
+                <!-- Кнопка сброса фильтров -->
+                <button 
+                    @click="clearFilters"
+                    class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
+                >
+                    Reset Filters
+                </button>
+            </div>
+
             <!-- Products Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 <div v-for="product in products.data" :key="product.id" 
@@ -125,7 +209,7 @@
 import Pagination from '@/Components/Pagination.vue';
 import { Head } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useCartStore } from '@/Stores/cartStore';
 import { ROUTES } from '../constants/routes';
@@ -138,7 +222,13 @@ const sortOption = ref('newest');
 const props = defineProps({
     categories: Array,
     products: Object,
-    filters: Object
+    filters: Object,
+    priceRange: Object
+});
+
+const priceFilter = ref({
+    min: props.priceRange.min,
+    max: props.priceRange.max
 });
 
 const cart = useCartStore();
@@ -159,6 +249,12 @@ onMounted(() => {
     if (props.filters.sort) {
         sortOption.value = props.filters.sort;
     }
+    if (props.filters.min_price) {
+        priceFilter.value.min = Number(props.filters.min_price);
+    }
+    if (props.filters.max_price) {
+        priceFilter.value.max = Number(props.filters.max_price);
+    }
 });
 
 // Удаляем слушатель при размонтировании
@@ -174,14 +270,32 @@ const formatPrice = (price) => {
 };
 
 const filterByCategory = (categoryId) => {
-    showMoreCategories.value = false; // Закрываем меню при выборе категории
-    router.get(route('home'), { category: categoryId }, {
+    showMoreCategories.value = false;
+    router.get(route('home'), { 
+        ...props.filters,
+        category: categoryId 
+    }, {
+        preserveState: true,
+        preserveScroll: true
+    });
+};
+
+const applyPriceFilter = () => {
+    router.get(route('home'), {
+        ...props.filters,
+        min_price: priceFilter.value.min,
+        max_price: priceFilter.value.max
+    }, {
         preserveState: true,
         preserveScroll: true
     });
 };
 
 const clearFilters = () => {
+    priceFilter.value = {
+        min: props.priceRange.min,
+        max: props.priceRange.max
+    };
     router.get(route('home'), {}, {
         preserveState: true,
         preserveScroll: true
@@ -199,7 +313,10 @@ const addToCart = (product) => {
 };
 
 const handleSort = () => {
-    router.get(route('home'), { sort: sortOption.value }, {
+    router.get(route('home'), { 
+        ...props.filters,
+        sort: sortOption.value 
+    }, {
         preserveState: true,
         preserveScroll: true
     });
@@ -217,6 +334,15 @@ const handleSearch = () => {
         });
     }, 300);
 };
+
+// Следим за изменениями фильтра цены
+watch([() => priceFilter.value.min, () => priceFilter.value.max], () => {
+    if (priceFilter.value.min > priceFilter.value.max) {
+        const temp = priceFilter.value.min;
+        priceFilter.value.min = priceFilter.value.max;
+        priceFilter.value.max = temp;
+    }
+}, { deep: true });
 </script>
 
 <style>
@@ -225,5 +351,55 @@ const handleSearch = () => {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+.range-input {
+    -webkit-appearance: none;
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: none;
+    top: 0;
+    left: 0;
+}
+
+.range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    pointer-events: auto;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    border: none;
+    margin-top: -4px;
+}
+
+.range-input::-moz-range-thumb {
+    pointer-events: auto;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    border: none;
+    margin-top: -4px;
+}
+
+.range-input::-webkit-slider-runnable-track,
+.range-input::-moz-range-track {
+    width: 100%;
+    height: 100%;
+    background: none;
+    border: none;
+}
+
+.range-input-min {
+    z-index: 2;
+}
+
+.range-input-max {
+    z-index: 1;
 }
 </style> 

@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CartController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -33,6 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Checkout');
     })->name('checkout');
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::post('/cart/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
 });
 
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog');
