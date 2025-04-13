@@ -5,6 +5,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
@@ -34,9 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/cart', function () {
         return Inertia::render('Cart');
     })->name('cart');
-    Route::get('/checkout', function () {
-        return Inertia::render('Checkout');
-    })->name('checkout');
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
     Route::post('/cart/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
 });

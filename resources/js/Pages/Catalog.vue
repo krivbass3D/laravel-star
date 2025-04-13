@@ -187,10 +187,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 <div v-for="product in products.data" :key="product.id" 
                      class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                    <img :src="product.image" :alt="product.name" class="w-full h-48 object-cover">
+                    <img :src="product.image" :alt="product.title" class="w-full h-48 object-cover">
                     <div class="p-4">
-                        <h3 class="text-lg font-semibold">{{ product.name }}</h3>
-                        <p class="text-gray-600">€{{ product.price }}</p>
+                        <h3 class="text-lg font-semibold">{{ product.title }}</h3>
+                        <p class="text-gray-600 text-sm mb-2">{{ product.description }}</p>
+                        <p class="text-gray-900 font-medium">€{{ product.price }}</p>
                         <button @click="addToCart(product)" 
                                 class="mt-4 w-full bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">
                             Add to Cart

@@ -135,10 +135,10 @@ const props = defineProps({
 const form = useForm({
     name: props.auth.user ? props.auth.user.name : '',
     email: props.auth.user ? props.auth.user.email : '',
-    phone: '',
-    address: '',
-    city: '',
-    postal_code: '',
+    phone: props.auth.user ? props.auth.user.phone : '',
+    address: props.auth.user ? props.auth.user.address : '',
+    city: props.auth.user ? props.auth.user.city : '',
+    postal_code: props.auth.user ? props.auth.user.postal_code : '',
     items: cart.items,
     total: cart.totalPrice
 });
