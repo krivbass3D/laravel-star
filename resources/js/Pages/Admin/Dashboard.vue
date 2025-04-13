@@ -1,4 +1,38 @@
+<script setup>
+import { ref } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
+
+const stats = ref([
+    { name: 'Total Products', value: '0', change: '+0%', changeType: 'positive' },
+    { name: 'Total Orders', value: '0', change: '+0%', changeType: 'positive' },
+    { name: 'Total Users', value: '0', change: '+0%', changeType: 'positive' },
+    { name: 'Total Revenue', value: '$0', change: '+0%', changeType: 'positive' }
+]);
+
+const latestCustomers = ref([
+    {
+        name: 'John Smith',
+        email: 'user2@example.com'
+    },
+    {
+        name: 'John Doe',
+        email: 'user1@example.com'
+    },
+    {
+        name: 'Zura',
+        email: 'zurasekhnishvili@gmail.com'
+    }
+]);
+
+defineOptions({
+    layout: AdminLayout
+});
+</script>
+
 <template>
+    <Head title="Dashboard" />
+
     <div class="p-6 bg-gray-100">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-semibold">Dashboard</h1>
@@ -74,40 +108,6 @@
         </div>
     </div>
 </template>
-
-<script setup>
-import { ref } from 'vue';
-import AppLayout from '@/Layouts/AppLayout.vue';
-
-defineOptions({
-    layout: AppLayout
-});
-
-const latestCustomers = ref([
-    {
-        name: 'John Smith',
-        email: 'user2@example.com'
-    },
-    {
-        name: 'John Doe',
-        email: 'user1@example.com'
-    },
-    {
-        name: 'Zura',
-        email: 'zurasekhnishvili@gmail.com'
-    }
-]);
-</script>
-
-<script>
-import { router } from '@inertiajs/vue3'
-
-export default {
-    methods: {
-        route: window.route
-    }
-}
-</script>
 
 <style scoped>
 .dashboard-card {
