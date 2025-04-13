@@ -26,7 +26,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
@@ -34,7 +34,7 @@ class ProductController extends Controller
         ]);
 
         $data = $request->except('image');
-        $data['slug'] = Str::slug($request->name);
+        $data['slug'] = Str::slug($request->title);
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
@@ -60,7 +60,7 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $request->validate([
-            'name' => 'sometimes|required|string|max:255',
+            'title' => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string',
             'price' => 'sometimes|required|numeric|min:0',
             'category_id' => 'sometimes|required|exists:categories,id',
@@ -69,8 +69,8 @@ class ProductController extends Controller
 
         $data = $request->except('image');
 
-        if ($request->has('name')) {
-            $data['slug'] = Str::slug($request->name);
+        if ($request->has('title')) {
+            $data['slug'] = Str::slug($request->title);
         }
 
         if ($request->hasFile('image')) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -17,17 +18,22 @@ class ProductController extends Controller
             ->latest()
             ->paginate(10);
 
+        $categories = Category::all();
+
         return Inertia::render('Admin/Products/Index', [
             'products' => ProductResource::collection($products),
+            'categories' => $categories,
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'quantity' => 'required|integer|min:0',
+            'category_id' => 'required|exists:categories,id',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
             'image' => 'required|image|max:2048',
         ]);
 
@@ -44,9 +50,11 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'quantity' => 'required|integer|min:0',
+            'category_id' => 'required|exists:categories,id',
+            'description' => 'nullable|string',
+            'is_active' => 'boolean',
             'image' => 'nullable|image|max:2048',
         ]);
 
