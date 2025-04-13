@@ -1,3 +1,6 @@
 import { createPinia } from 'pinia';
+import { useCartStore } from './cartStore';
 
-export const pinia = createPinia(); 
+const pinia = createPinia();
+
+export { pinia, useCartStore }; 
