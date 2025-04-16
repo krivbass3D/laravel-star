@@ -154,14 +154,15 @@ const submit = () => {
     const formattedItems = cart.items.map(item => ({
         id: item.id,
         quantity: item.quantity,
-        price: item.price
+        price: parseFloat(item.price)
     }));
 
     // Обновляем данные формы перед отправкой
     form.items = formattedItems;
-    form.total = cart.totalPrice;
+    form.total = parseFloat(cart.totalPrice);
 
     form.post(route('orders.store'), {
+        preserveScroll: true,
         onSuccess: () => {
             cart.clearCart();
             window.location.href = route('home');

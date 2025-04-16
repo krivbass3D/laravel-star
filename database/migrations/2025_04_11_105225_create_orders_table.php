@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('email');
             $table->string('phone');
             $table->text('address');
+            $table->string('city');
+            $table->string('postal_code');
             $table->timestamps();
         });
     }

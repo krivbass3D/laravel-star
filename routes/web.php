@@ -65,6 +65,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::put('/orders/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
+    Route::resource('orders', \App\Http\Controllers\Admin\OrderController::class);
 
     // Users management
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
