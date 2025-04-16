@@ -22,7 +22,7 @@ class ProductSeeder extends Seeder
                 'description' => $faker->paragraph(3),
                 'price' => $faker->randomFloat(2, 100, 2000),
                 'category_id' => 1,
-                'image' => 'electronics-' . $i . '.jpg',
+                'image' => 'products/electronics-' . $i . '.jpg',
                 'is_active' => $faker->boolean(80)
             ]);
         }
@@ -35,7 +35,7 @@ class ProductSeeder extends Seeder
                 'description' => $faker->paragraph(3),
                 'price' => $faker->randomFloat(2, 20, 500),
                 'category_id' => 2,
-                'image' => 'clothing-' . $i . '.jpg',
+                'image' => 'products/clothing-' . $i . '.jpg',
                 'is_active' => $faker->boolean(80)
             ]);
         }
@@ -48,7 +48,7 @@ class ProductSeeder extends Seeder
                 'description' => $faker->paragraph(3),
                 'price' => $faker->randomFloat(2, 50, 2000),
                 'category_id' => 3,
-                'image' => 'home-' . $i . '.jpg',
+                'image' => 'products/home-' . $i . '.jpg',
                 'is_active' => $faker->boolean(80)
             ]);
         }
@@ -61,7 +61,7 @@ class ProductSeeder extends Seeder
                 'description' => $faker->paragraph(3),
                 'price' => $faker->randomFloat(2, 10, 200),
                 'category_id' => 4,
-                'image' => 'beauty-' . $i . '.jpg',
+                'image' => 'products/beauty-' . $i . '.jpg',
                 'is_active' => $faker->boolean(80)
             ]);
         }
@@ -74,7 +74,7 @@ class ProductSeeder extends Seeder
                 'description' => $faker->paragraph(3),
                 'price' => $faker->randomFloat(2, 30, 1000),
                 'category_id' => 5,
-                'image' => 'sports-' . $i . '.jpg',
+                'image' => 'products/sports-' . $i . '.jpg',
                 'is_active' => $faker->boolean(80)
             ]);
         }
@@ -87,7 +87,7 @@ class ProductSeeder extends Seeder
                 'description' => $faker->paragraph(3),
                 'price' => $faker->randomFloat(2, 5, 100),
                 'category_id' => 6,
-                'image' => 'books-' . $i . '.jpg',
+                'image' => 'products/books-' . $i . '.jpg',
                 'is_active' => $faker->boolean(80)
             ]);
         }
@@ -100,7 +100,7 @@ class ProductSeeder extends Seeder
                 'description' => $faker->paragraph(3),
                 'price' => $faker->randomFloat(2, 10, 300),
                 'category_id' => 7,
-                'image' => 'kids-' . $i . '.jpg',
+                'image' => 'products/kids-' . $i . '.jpg',
                 'is_active' => $faker->boolean(80)
             ]);
         }
@@ -113,7 +113,7 @@ class ProductSeeder extends Seeder
                 'description' => $faker->paragraph(3),
                 'price' => $faker->randomFloat(2, 50, 1000),
                 'category_id' => 8,
-                'image' => 'auto-' . $i . '.jpg',
+                'image' => 'products/auto-' . $i . '.jpg',
                 'is_active' => $faker->boolean(80)
             ]);
         }
@@ -126,7 +126,7 @@ class ProductSeeder extends Seeder
                 'description' => $faker->paragraph(3),
                 'price' => $faker->randomFloat(2, 5, 200),
                 'category_id' => 9,
-                'image' => 'pets-' . $i . '.jpg',
+                'image' => 'products/pets-' . $i . '.jpg',
                 'is_active' => $faker->boolean(80)
             ]);
         }
@@ -139,7 +139,7 @@ class ProductSeeder extends Seeder
                 'description' => $faker->paragraph(3),
                 'price' => $faker->randomFloat(2, 1, 50),
                 'category_id' => 10,
-                'image' => 'food-' . $i . '.jpg',
+                'image' => 'products/food-' . $i . '.jpg',
                 'is_active' => $faker->boolean(80)
             ]);
         }

@@ -20,7 +20,12 @@ class ProductService
         // Трансформация цен в евро
         $products->getCollection()->transform(function ($product) {
             $product->price = round($product->price / 100, 2);
-            $product->image = "https://picsum.photos/300/200?random=" . $product->id;
+            // Используем загруженное изображение, если оно есть и существует
+            if ($product->image && file_exists(public_path('storage/' . $product->image))) {
+                $product->image = asset('storage/' . $product->image);
+            } else {
+                $product->image = "https://picsum.photos/300/200?random=" . $product->id;
+            }
             return $product;
         });
 

@@ -89,9 +89,14 @@
                     </div>
                     <div>
                         <label class="block mb-1">Image{{ !isEditing ? ' *' : '' }}</label>
-                        <input type="file" @change="handleImageUpload" accept="image/*" class="w-full border rounded p-2">
-                        <span v-if="errors.image" class="text-red-500 text-sm">{{ errors.image }}</span>
-                        <span v-if="!isEditing" class="text-gray-500 text-sm">Image is required for new products</span>
+                        <div class="space-y-2">
+                            <div v-if="isEditing && currentImage" class="mb-2">
+                                <img :src="currentImage" alt="Current product image" class="w-32 h-32 object-cover rounded">
+                            </div>
+                            <input type="file" @change="handleImageUpload" accept="image/*" class="w-full border rounded p-2">
+                            <span v-if="errors.image" class="text-red-500 text-sm">{{ errors.image }}</span>
+                            <span v-if="!isEditing" class="text-gray-500 text-sm">Image is required for new products</span>
+                        </div>
                     </div>
                     <div class="flex items-center">
                         <input v-model="form.is_active" type="checkbox" class="mr-2">
@@ -147,22 +152,29 @@ const form = ref({
     description: '',
     price: '',
     category_id: '',
-    image: null,
-    is_active: true
+    is_active: true,
+    image: null
 });
 
 const errors = ref({});
 
-// Функция для поиска slug категории по её id
-const getCategorySlug = (categoryId) => {
-    const category = props.categories.find(cat => cat.id.toString() === categoryId.toString());
-    return category ? category.slug : '';
+const currentImage = ref(null);
+
+const generateSlug = (title, categoryId) => {
+    const category = props.categories.find(c => c.id === parseInt(categoryId));
+    const categorySlug = category ? category.slug : '';
+    const baseSlug = `${categorySlug}-${title}`
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+    return baseSlug;
 };
 
-// Следим за изменением category_id и генерируем slug из slug категории
-watch(() => form.value.category_id, (newCategoryId) => {
-    if (newCategoryId) {
-        form.value.slug = getCategorySlug(newCategoryId);
+watch([() => form.value.title, () => form.value.category_id], ([newTitle, newCategoryId]) => {
+    if (newTitle && newCategoryId) {
+        form.value.slug = generateSlug(newTitle, newCategoryId);
     }
 });
 
@@ -175,30 +187,34 @@ const openCreateModal = () => {
         description: '',
         price: '',
         category_id: '',
-        image: null,
-        is_active: true
+        is_active: true,
+        image: null
     };
     showModal.value = true;
 };
 
 const editProduct = (product) => {
+    console.log('Product data:', product);
     isEditing.value = true;
+    currentImage.value = product.image;
     form.value = {
         id: product.id,
-        title: product.title,
-        slug: getCategorySlug(product.category_id), // Используем slug категории
-        description: product.description,
-        price: product.price,
-        category_id: product.category_id?.toString() || '',
+        title: product.title || '',
+        slug: product.slug || generateSlug(product.title || '', product.category_id),
+        description: product.description || '',
+        price: product.price?.toString() || '',
+        category_id: product.category_id ? String(product.category_id) : '',
         is_active: Boolean(product.is_active),
         image: null
     };
+    console.log('Form values after edit:', form.value);
     showModal.value = true;
 };
 
 const closeModal = () => {
     showModal.value = false;
     isEditing.value = false;
+    currentImage.value = null;
     errors.value = {};
     form.value = {
         id: null,
@@ -207,8 +223,8 @@ const closeModal = () => {
         description: '',
         price: '',
         category_id: '',
-        image: null,
-        is_active: true
+        is_active: true,
+        image: null
     };
 };
 
@@ -217,71 +233,81 @@ const handleImageUpload = (e) => {
     form.value.image = file;
 };
 
-const submitForm = () => {
+const submitForm = async () => {
     errors.value = {};
+    console.log('Form values before processing:', form.value);
+
+    // Validate required fields
+    if (!form.value.title?.trim()) {
+        errors.value.title = 'The title field is required.';
+        return;
+    }
+    if (!form.value.price) {
+        errors.value.price = 'The price field is required.';
+        return;
+    }
+    if (!form.value.category_id) {
+        errors.value.category_id = 'The category field is required.';
+        return;
+    }
 
     const formData = new FormData();
-    
-    // Получаем slug категории
-    const categorySlug = getCategorySlug(form.value.category_id);
-    if (!categorySlug) {
-        errors.value.category_id = 'Category is required';
-        return;
+    formData.append('title', form.value.title.trim());
+    formData.append('slug', generateSlug(form.value.title, form.value.category_id));
+    formData.append('price', form.value.price);
+    formData.append('category_id', form.value.category_id);
+    formData.append('is_active', form.value.is_active ? '1' : '0');
+    formData.append('description', form.value.description?.trim() || '');
+
+    if (form.value.image) {
+        formData.append('image', form.value.image);
     }
 
-    const formValues = {
-        ...form.value,
-        category_id: form.value.category_id ? parseInt(form.value.category_id) : null,
-        is_active: Boolean(form.value.is_active),
-        slug: categorySlug // Добавляем slug в formValues
-    };
+    console.log('Form data prepared for sending');
 
-    if (!isEditing.value && !form.value.image) {
-        errors.value.image = 'The image field is required';
-        return;
-    }
-    
-    // Сначала добавляем slug, чтобы убедиться, что он будет в запросе
-    formData.append('slug', formValues.slug);
-    
-    // Затем добавляем остальные поля
-    Object.keys(formValues).forEach(key => {
-        if (formValues[key] !== null && key !== 'slug') { // Пропускаем slug, так как уже добавили
-            if (key === 'image' && formValues[key] instanceof File) {
-                formData.append(key, formValues[key]);
-            } else if (key === 'is_active') {
-                formData.append(key, formValues[key] ? '1' : '0');
-            } else if (key !== 'image') {
-                formData.append(key, formValues[key]);
+    try {
+        if (isEditing.value) {
+            console.log('Updating product with ID:', form.value.id);
+            
+            await router.post(`/admin/products/${form.value.id}`, formData, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    closeModal();
+                    refreshProducts();
+                },
+                onError: (errors) => {
+                    console.error('Update errors:', errors);
+                    errors.value = errors;
+                },
+                headers: {
+                    'X-HTTP-Method-Override': 'PUT'
+                }
+            });
+        } else {
+            if (!form.value.image) {
+                errors.value.image = 'The image field is required.';
+                return;
             }
+
+            console.log('Creating new product');
+            
+            await router.post('/admin/products', formData, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    closeModal();
+                    refreshProducts();
+                },
+                onError: (errors) => {
+                    console.error('Create errors:', errors);
+                    errors.value = errors;
+                }
+            });
         }
-    });
-
-    if (isEditing.value) {
-        formData.append('_method', 'PUT');
-        router.post(`/admin/products/${form.value.id}`, formData, {
-            preserveScroll: true,
-            onSuccess: () => {
-                closeModal();
-                errors.value = {};
-            },
-            onError: (validationErrors) => {
-                errors.value = validationErrors;
-                console.error('Update errors:', validationErrors);
-            }
-        });
-    } else {
-        router.post('/admin/products', formData, {
-            preserveScroll: true,
-            onSuccess: () => {
-                closeModal();
-                errors.value = {};
-            },
-            onError: (validationErrors) => {
-                errors.value = validationErrors;
-                console.error('Create errors:', validationErrors);
-            }
-        });
+    } catch (error) {
+        console.error('Form submission error:', error);
+        errors.value = {
+            general: 'An unexpected error occurred. Please try again.'
+        };
     }
 };
 
@@ -302,4 +328,14 @@ watch([perPage, search], ([newPerPage, newSearch]) => {
         preserveScroll: true
     });
 });
+
+const refreshProducts = () => {
+    router.get(ROUTES.ADMIN.PRODUCTS, {
+        per_page: perPage.value,
+        search: search.value
+    }, {
+        preserveState: true,
+        preserveScroll: true
+    });
+};
 </script> 

@@ -17,9 +17,12 @@ class OrderController extends Controller
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:255',
             'address' => 'required|string|max:1000',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:20',
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
+            'total' => 'required|numeric|min:0'
         ]);
 
         try {
@@ -31,9 +34,10 @@ class OrderController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'address' => $request->address,
-                'total_amount' => collect($request->items)->sum(function ($item) {
-                    return $item['price'] * $item['quantity'];
-                }),
+                'city' => $request->city,
+                'postal_code' => $request->postal_code,
+                'total_amount' => $request->total,
+                'status' => 'pending'
             ]);
 
             foreach ($request->items as $item) {
@@ -41,7 +45,7 @@ class OrderController extends Controller
                     'order_id' => $order->id,
                     'product_id' => $item['id'],
                     'quantity' => $item['quantity'],
-                    'price' => $item['price'],
+                    'price' => $item['price']
                 ]);
             }
 
@@ -50,6 +54,7 @@ class OrderController extends Controller
             return redirect()->route('home')->with('success', 'Order placed successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Order creation failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to place order. Please try again.');
         }
     }

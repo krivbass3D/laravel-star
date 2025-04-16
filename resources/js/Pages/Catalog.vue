@@ -202,7 +202,7 @@
 
             <!-- Pagination -->
             <div class="mt-8">
-                <Pagination :links="products.links" />
+                <Pagination :links="products.links" :meta="products" />
             </div>
         </main>
     </div>

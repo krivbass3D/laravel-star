@@ -16,10 +16,10 @@
                             <div class="flex items-center">
                                 <div class="ml-3 relative">
                                     <div class="flex items-center space-x-3">
-                                        <span class="text-gray-700">Admin</span>
+                                        <span class="text-gray-700">{{ user.name }}</span>
                                         <img class="h-8 w-8 rounded-full" 
-                                             src="https://ui-avatars.com/api/?name=Admin&amp;color=7F9CF5&amp;background=EBF4FF" 
-                                             alt="Admin">
+                                             :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&color=7F9CF5&background=EBF4FF`" 
+                                             :alt="user.name">
                                     </div>
                                 </div>
                             </div>
@@ -40,6 +40,9 @@ import { Link } from '@inertiajs/vue3';
 import { useCartStore } from '../Stores/cartStore';
 import { ROUTES } from '../constants/routes';
 import AdminSidebar from '@/Components/Admin/Sidebar.vue';
+import { usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const cart = useCartStore();
+const user = computed(() => usePage().props.auth.user);
 </script> 

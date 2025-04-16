@@ -12,12 +12,20 @@ use Inertia\Inertia;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::query()
-            ->latest()
-            ->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search', '');
 
+        $query = Product::query()
+            ->with('category')
+            ->latest();
+
+        if ($search) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        $products = $query->paginate($perPage);
         $categories = Category::all();
 
         return Inertia::render('Admin/Products/Index', [
@@ -39,7 +47,9 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
+            $file = $request->file('image');
+            $filename = $file->getClientOriginalName();
+            $path = $file->storeAs('products', $filename, 'public');
             $validated['image'] = $path;
         }
 
@@ -60,17 +70,24 @@ class ProductController extends Controller
             'image' => 'nullable|image|max:2048',
         ]);
 
-        if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
+        try {
+            if ($request->hasFile('image')) {
+                if ($product->image) {
+                    Storage::disk('public')->delete($product->image);
+                }
+                $file = $request->file('image');
+                $filename = $file->getClientOriginalName();
+                $path = $file->storeAs('products', $filename, 'public');
+                $validated['image'] = $path;
             }
-            $path = $request->file('image')->store('products', 'public');
-            $validated['image'] = $path;
+
+            $product->update($validated);
+
+            return redirect()->back()->with('success', 'Product updated successfully');
+        } catch (\Exception $e) {
+            \Log::error('Product update failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update product: ' . $e->getMessage());
         }
-
-        $product->update($validated);
-
-        return redirect()->back()->with('success', 'Product updated successfully.');
     }
 
     public function destroy(Product $product)

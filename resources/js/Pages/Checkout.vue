@@ -144,23 +144,30 @@ const form = useForm({
 });
 
 const submit = () => {
-    if (!form.phone) {
-        form.errors.phone = 'Пожалуйста, введите номер телефона';
+    // Проверяем наличие товаров в корзине
+    if (cart.items.length === 0) {
+        alert('Your cart is empty');
         return;
     }
-    
-    form.post('/orders', {
+
+    // Преобразуем items в нужный формат
+    const formattedItems = cart.items.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        price: item.price
+    }));
+
+    // Обновляем данные формы перед отправкой
+    form.items = formattedItems;
+    form.total = cart.totalPrice;
+
+    form.post(route('orders.store'), {
         onSuccess: () => {
             cart.clearCart();
-            // Перенаправляем на страницу успешного оформления заказа
-            window.location.href = ROUTES.HOME;
+            window.location.href = route('home');
         },
         onError: (errors) => {
-            console.error('Ошибка при оформлении заказа:', errors);
-            // Показываем ошибки валидации
-            if (errors.phone) {
-                form.errors.phone = errors.phone;
-            }
+            console.error('Order creation failed:', errors);
         }
     });
 };
