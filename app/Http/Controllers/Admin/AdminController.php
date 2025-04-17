@@ -14,7 +14,6 @@ class AdminController extends Controller
 {
     public function index()
     {
-        // Получаем статистику
         $stats = [
             'users' => User::count(),
             'products' => Product::where('is_active', true)->count(),
@@ -22,16 +21,16 @@ class AdminController extends Controller
             'total_income' => Order::sum('total_amount'),
         ];
 
-        // Логируем статистику
+
         Log::info('Dashboard Stats:', $stats);
 
-        // Получаем последние заказы
+        
         $latestOrders = Order::with(['items.product'])
             ->latest()
             ->take(5)
             ->get();
 
-        // Логируем количество заказов
+        
         Log::info('Latest Orders Count: ' . $latestOrders->count());
 
         $mappedOrders = $latestOrders->map(function ($order) {
@@ -52,13 +51,13 @@ class AdminController extends Controller
             ];
         });
 
-        // Получаем последних клиентов
+        
         $latestCustomers = User::where('is_admin', false)
             ->latest()
             ->take(3)
             ->get();
 
-        // Логируем количество клиентов
+        
         Log::info('Latest Customers Count: ' . $latestCustomers->count());
 
         $mappedCustomers = $latestCustomers->map(function ($user) {
@@ -74,7 +73,7 @@ class AdminController extends Controller
             'latestCustomers' => $mappedCustomers,
         ];
 
-        // Логируем финальные данные
+        
         Log::info('Dashboard Data:', $data);
 
         return Inertia::render('Admin/Dashboard', $data);

@@ -45,7 +45,6 @@ class OrderService
 
             DB::commit();
 
-            // Отправляем уведомление
             try {
                 Notification::route('mail', $order->email)
                     ->notify(new OrderCreated($order));

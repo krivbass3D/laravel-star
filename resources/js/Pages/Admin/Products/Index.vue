@@ -33,7 +33,7 @@
                     <tr v-for="product in products.data" :key="product.id">
                         <td class="border px-4 py-2">{{ product.id }}</td>
                         <td class="border px-4 py-2">
-                            <img :src="product.image" alt="Product image" class="w-16 h-16 object-cover">
+                            <img :src="'/storage/' + product.image" alt="Product image" class="w-16 h-16 object-cover">
                         </td>
                         <td class="border px-4 py-2">{{ product.title }}</td>
                         <td class="border px-4 py-2">${{ product.price }}</td>
@@ -90,8 +90,8 @@
                     <div>
                         <label class="block mb-1">Image{{ !isEditing ? ' *' : '' }}</label>
                         <div class="space-y-2">
-                            <div v-if="isEditing && currentImage" class="mb-2">
-                                <img :src="currentImage" alt="Current product image" class="w-32 h-32 object-cover rounded">
+                            <div v-if="isEditing && form.current_image" class="mb-2">
+                                <img :src="'/storage/' + form.current_image" alt="Current product image" class="w-32 h-32 object-cover rounded">
                             </div>
                             <input type="file" @change="handleImageUpload" accept="image/*" class="w-full border rounded p-2">
                             <span v-if="errors.image" class="text-red-500 text-sm">{{ errors.image }}</span>
@@ -153,12 +153,11 @@ const form = ref({
     price: '',
     category_id: '',
     is_active: true,
-    image: null
+    image: null,
+    current_image: null
 });
 
 const errors = ref({});
-
-const currentImage = ref(null);
 
 const generateSlug = (title, categoryId) => {
     const category = props.categories.find(c => c.id === parseInt(categoryId));
@@ -188,15 +187,14 @@ const openCreateModal = () => {
         price: '',
         category_id: '',
         is_active: true,
-        image: null
+        image: null,
+        current_image: null
     };
     showModal.value = true;
 };
 
 const editProduct = (product) => {
-    console.log('Product data:', product);
     isEditing.value = true;
-    currentImage.value = product.image;
     form.value = {
         id: product.id,
         title: product.title || '',
@@ -205,16 +203,15 @@ const editProduct = (product) => {
         price: product.price?.toString() || '',
         category_id: product.category_id ? String(product.category_id) : '',
         is_active: Boolean(product.is_active),
-        image: null
+        image: null,
+        current_image: product.image
     };
-    console.log('Form values after edit:', form.value);
     showModal.value = true;
 };
 
 const closeModal = () => {
     showModal.value = false;
     isEditing.value = false;
-    currentImage.value = null;
     errors.value = {};
     form.value = {
         id: null,
@@ -224,7 +221,8 @@ const closeModal = () => {
         price: '',
         category_id: '',
         is_active: true,
-        image: null
+        image: null,
+        current_image: null
     };
 };
 
@@ -235,9 +233,7 @@ const handleImageUpload = (e) => {
 
 const submitForm = async () => {
     errors.value = {};
-    console.log('Form values before processing:', form.value);
 
-    // Validate required fields
     if (!form.value.title?.trim()) {
         errors.value.title = 'The title field is required.';
         return;
@@ -251,63 +247,41 @@ const submitForm = async () => {
         return;
     }
 
-    const formData = new FormData();
-    formData.append('title', form.value.title.trim());
-    formData.append('slug', generateSlug(form.value.title, form.value.category_id));
-    formData.append('price', form.value.price);
-    formData.append('category_id', form.value.category_id);
-    formData.append('is_active', form.value.is_active ? '1' : '0');
-    formData.append('description', form.value.description?.trim() || '');
-
-    if (form.value.image) {
-        formData.append('image', form.value.image);
-    }
-
-    console.log('Form data prepared for sending');
-
     try {
-        if (isEditing.value) {
-            console.log('Updating product with ID:', form.value.id);
-            
-            await router.post(`/admin/products/${form.value.id}`, formData, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    closeModal();
-                    refreshProducts();
-                },
-                onError: (errors) => {
-                    console.error('Update errors:', errors);
-                    errors.value = errors;
-                },
-                headers: {
-                    'X-HTTP-Method-Override': 'PUT'
-                }
-            });
-        } else {
-            if (!form.value.image) {
-                errors.value.image = 'The image field is required.';
-                return;
-            }
-
-            console.log('Creating new product');
-            
-            await router.post('/admin/products', formData, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    closeModal();
-                    refreshProducts();
-                },
-                onError: (errors) => {
-                    console.error('Create errors:', errors);
-                    errors.value = errors;
-                }
-            });
+        const formData = new FormData();
+        formData.append('_method', 'PUT');
+        formData.append('title', form.value.title);
+        formData.append('slug', form.value.slug);
+        formData.append('price', form.value.price);
+        formData.append('category_id', form.value.category_id);
+        formData.append('description', form.value.description || '');
+        formData.append('is_active', form.value.is_active ? '1' : '0');
+        
+        if (form.value.image) {
+            formData.append('image', form.value.image);
         }
+        
+        if (form.value.current_image) {
+            formData.append('current_image', form.value.current_image);
+        }
+
+        const url = isEditing.value 
+            ? `/admin/products/${form.value.id}`
+            : '/admin/products';
+
+        await router.post(url, formData, {
+            preserveScroll: true,
+            onSuccess: () => {
+                closeModal();
+                window.location.reload();
+            },
+            onError: (errors) => {
+                errors.value = errors;
+            }
+        });
     } catch (error) {
-        console.error('Form submission error:', error);
-        errors.value = {
-            general: 'An unexpected error occurred. Please try again.'
-        };
+        console.error('Error submitting form:', error);
+        errors.value.submit = 'An error occurred while submitting the form.';
     }
 };
 
@@ -328,14 +302,4 @@ watch([perPage, search], ([newPerPage, newSearch]) => {
         preserveScroll: true
     });
 });
-
-const refreshProducts = () => {
-    router.get(ROUTES.ADMIN.PRODUCTS, {
-        per_page: perPage.value,
-        search: search.value
-    }, {
-        preserveState: true,
-        preserveScroll: true
-    });
-};
 </script> 

@@ -17,10 +17,8 @@ class ProductService
     {
         $products = $this->productRepository->getAllWithPagination($filters, $perPage);
         
-        // Трансформация цен в евро
         $products->getCollection()->transform(function ($product) {
             $product->price = round($product->price / 100, 2);
-            // Используем загруженное изображение, если оно есть и существует
             if ($product->image && file_exists(public_path('storage/' . $product->image))) {
                 $product->image = asset('storage/' . $product->image);
             } else {
@@ -43,7 +41,6 @@ class ProductService
 
     public function createProduct(array $data)
     {
-        // Конвертация цены в копейки
         if (isset($data['price'])) {
             $data['price'] = $data['price'] * 100;
         }
@@ -53,7 +50,6 @@ class ProductService
 
     public function updateProduct(int $id, array $data)
     {
-        // Конвертация цены в копейки
         if (isset($data['price'])) {
             $data['price'] = $data['price'] * 100;
         }

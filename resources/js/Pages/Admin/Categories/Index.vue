@@ -10,7 +10,6 @@
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        <!-- Add Category Button -->
                         <div class="mb-4">
                             <button @click="openCreateModal"
                                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
@@ -18,7 +17,6 @@
                             </button>
                         </div>
 
-                        <!-- Categories Table -->
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
                                 <thead>
@@ -73,7 +71,6 @@
             </div>
         </div>
 
-        <!-- Create/Edit Modal -->
         <Modal :show="modalOpen" @close="closeModal">
             <div class="p-6">
                 <h2 class="text-lg font-medium text-gray-900">
@@ -235,7 +232,6 @@ const deleteCategory = (category) => {
     }
 };
 
-// Автоматически генерируем slug из названия
 watch(() => form.name, (newValue) => {
     if (!isEditing.value) {
         form.slug = newValue

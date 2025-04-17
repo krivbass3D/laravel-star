@@ -37,7 +37,7 @@ const showingNavigationDropdown = ref(false);
                         </div>
 
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
-                            <!-- Settings Dropdown -->
+
                             <div class="ms-3 relative">
                                 <Dropdown align="right" width="48">
                                     <template #trigger>

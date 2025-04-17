@@ -26,7 +26,6 @@
                 Previous
             </span>
 
-            <!-- Page Numbers -->
             <template v-for="page in pageRange" :key="page">
                 <button
                     @click="changePage(page)"
@@ -37,7 +36,6 @@
                 </button>
             </template>
 
-            <!-- Next Page Link -->
             <button
                 v-if="hasNextPage"
                 @click="changePage(meta.current_page + 1)"
@@ -99,9 +97,9 @@ const pageRange = computed(() => {
     
     for (let i = 1; i <= totalPages; i++) {
         if (
-            i === 1 || // Первая страница
-            i === totalPages || // Последняя страница
-            (i >= currentPage - 2 && i <= currentPage + 2) // 2 страницы до и после текущей
+            i === 1 || 
+            i === totalPages ||
+            (i >= currentPage - 2 && i <= currentPage + 2) 
         ) {
             range.push(i);
         }
@@ -110,11 +108,10 @@ const pageRange = computed(() => {
 });
 
 const changePage = (page) => {
-    // Получаем текущие параметры URL
+
     const url = new URL(window.location.href);
     const params = Object.fromEntries(url.searchParams.entries());
-    
-    // Обновляем номер страницы
+
     router.get(route('home'), { 
         ...params,
         page: page 
