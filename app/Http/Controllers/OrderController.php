@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Notifications\OrderCreated;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -52,7 +54,16 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return redirect()->route('home')->with('success', 'Order placed successfully!');
+            // Отправляем уведомление
+            try {
+                Notification::route('mail', $order->email)
+                    ->notify(new OrderCreated($order));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send order notification: ' . $e->getMessage());
+                // Не прерываем выполнение, так как заказ уже создан
+            }
+
+            return redirect()->route('home')->with('success', 'Order placed successfully! Check your email for confirmation.');
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Order creation failed: ' . $e->getMessage());

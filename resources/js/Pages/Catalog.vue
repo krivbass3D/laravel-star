@@ -274,9 +274,11 @@ const formatPrice = (price) => {
 
 const filterByCategory = (categoryId) => {
     showMoreCategories.value = false;
+    const currentPage = new URL(window.location.href).searchParams.get('page');
     router.get(route('home'), { 
         ...props.filters,
-        category: categoryId 
+        category: categoryId,
+        page: currentPage
     }, {
         preserveState: true,
         preserveScroll: true
@@ -296,10 +298,12 @@ const updatePriceFilter = () => {
 
 // Применяем фильтр только когда пользователь отпускает ползунок
 const applyPriceFilter = () => {
+    const currentPage = new URL(window.location.href).searchParams.get('page');
     router.get(route('home'), {
         ...props.filters,
         min_price: priceFilter.value.min,
-        max_price: priceFilter.value.max
+        max_price: priceFilter.value.max,
+        page: currentPage
     }, {
         preserveState: true,
         preserveScroll: true
@@ -328,9 +332,11 @@ const addToCart = (product) => {
 };
 
 const handleSort = () => {
+    const currentPage = new URL(window.location.href).searchParams.get('page');
     router.get(route('home'), { 
         ...props.filters,
-        sort: sortOption.value 
+        sort: sortOption.value,
+        page: currentPage
     }, {
         preserveState: true,
         preserveScroll: true
@@ -340,9 +346,12 @@ const handleSort = () => {
 const handleSearch = () => {
     clearTimeout(searchTimeout.value);
     searchTimeout.value = setTimeout(() => {
+        const currentPage = new URL(window.location.href).searchParams.get('page');
         router.get(route('home'), { 
+            ...props.filters,
             search: searchQuery.value,
-            sort: sortOption.value 
+            sort: sortOption.value,
+            page: currentPage
         }, {
             preserveState: true,
             preserveScroll: true

@@ -11,13 +11,13 @@
         </div>
         <div class="flex justify-center space-x-1">
             <!-- Previous Page Link -->
-            <Link
-                v-if="links.prev"
-                :href="links.prev"
+            <button
+                v-if="hasPreviousPage"
+                @click="changePage(meta.current_page - 1)"
                 class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 leading-5 rounded-md hover:text-gray-500 focus:outline-none focus:ring ring-gray-300 focus:border-blue-300 active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150"
             >
                 Previous
-            </Link>
+            </button>
 
             <span
                 v-else
@@ -26,26 +26,25 @@
                 Previous
             </span>
 
-            <!-- Page Links -->
-            <template v-if="links.links" v-for="(link, key) in links.links" :key="key">
-                <Link
-                    v-if="link.url && !isEndsLink(link)"
-                    :href="link.url"
+            <!-- Page Numbers -->
+            <template v-for="page in pageRange" :key="page">
+                <button
+                    @click="changePage(page)"
                     class="relative inline-flex items-center px-4 py-2 text-sm font-medium border leading-5 rounded-md transition ease-in-out duration-150"
-                    :class="{'bg-indigo-600 text-white border-indigo-600': link.active, 'text-gray-700 bg-white border-gray-300 hover:text-gray-500': !link.active}"
+                    :class="{'bg-indigo-600 text-white border-indigo-600': page === meta.current_page, 'text-gray-700 bg-white border-gray-300 hover:text-gray-500': page !== meta.current_page}"
                 >
-                    {{ link.label }}
-                </Link>
+                    {{ page }}
+                </button>
             </template>
 
             <!-- Next Page Link -->
-            <Link
-                v-if="links.next"
-                :href="links.next"
+            <button
+                v-if="hasNextPage"
+                @click="changePage(meta.current_page + 1)"
                 class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 leading-5 rounded-md hover:text-gray-500 focus:outline-none focus:ring ring-gray-300 focus:border-blue-300 active:bg-gray-100 active:text-gray-700 transition ease-in-out duration-150"
             >
                 Next
-            </Link>
+            </button>
 
             <span
                 v-else
@@ -58,7 +57,8 @@
 </template>
 
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps({
     meta: {
@@ -69,7 +69,8 @@ const props = defineProps({
             from: 0,
             to: 0,
             total: 0,
-            per_page: 10
+            per_page: 10,
+            last_page: 1
         })
     },
     links: {
@@ -83,8 +84,44 @@ const props = defineProps({
     }
 });
 
-const isEndsLink = (link) => {
-    return link.label === '&laquo; Previous' || link.label === 'Next &raquo;';
+const hasPreviousPage = computed(() => {
+    return props.meta.current_page > 1;
+});
+
+const hasNextPage = computed(() => {
+    return props.meta.current_page < props.meta.last_page;
+});
+
+const pageRange = computed(() => {
+    const range = [];
+    const totalPages = props.meta.last_page;
+    const currentPage = props.meta.current_page;
+    
+    for (let i = 1; i <= totalPages; i++) {
+        if (
+            i === 1 || // Первая страница
+            i === totalPages || // Последняя страница
+            (i >= currentPage - 2 && i <= currentPage + 2) // 2 страницы до и после текущей
+        ) {
+            range.push(i);
+        }
+    }
+    return range;
+});
+
+const changePage = (page) => {
+    // Получаем текущие параметры URL
+    const url = new URL(window.location.href);
+    const params = Object.fromEntries(url.searchParams.entries());
+    
+    // Обновляем номер страницы
+    router.get(route('home'), { 
+        ...params,
+        page: page 
+    }, {
+        preserveState: true,
+        preserveScroll: true
+    });
 };
 </script>
 
