@@ -104,8 +104,8 @@ npm run dev
 - Main site: http://laravel-star-tz/
 - Admin panel: http://laravel-star-tz/admin/dashboard
 - Default admin credentials:
-  - Email: admin@example.com
-  - Password: password
+  - Email: admin@admin.com
+  - Password: admin@admin.com
 
 ## Development
 
