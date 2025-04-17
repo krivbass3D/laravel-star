@@ -106,6 +106,7 @@ npm run dev
 - Default admin credentials:
   - Email: admin@admin.com
   - Password: admin@admin.com
+  
 
 ## Development
 
