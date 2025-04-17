@@ -4,29 +4,25 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class OrderController extends Controller
 {
+    protected $orderService;
+
+    public function __construct(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
+
     public function index(Request $request)
     {
         $perPage = $request->input('per_page', 10);
         $search = $request->input('search', '');
 
-        $query = Order::query()
-            ->with(['user', 'items.product'])
-            ->latest();
-
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
-            });
-        }
-
-        $orders = $query->paginate($perPage);
+        $orders = $this->orderService->getPaginatedOrders($perPage, $search);
 
         return Inertia::render('Admin/Orders/Index', [
             'orders' => $orders
@@ -39,14 +35,14 @@ class OrderController extends Controller
             'status' => 'required|string|in:pending,processing,completed,cancelled'
         ]);
 
-        $order->update($validated);
+        $this->orderService->updateOrderStatus($order, $validated['status']);
 
         return redirect()->back()->with('success', 'Order updated successfully');
     }
 
     public function destroy(Order $order)
     {
-        $order->delete();
+        $this->orderService->deleteOrder($order->id);
 
         return redirect()->back()->with('success', 'Order deleted successfully.');
     }
