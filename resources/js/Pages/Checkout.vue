@@ -169,6 +169,7 @@ const submit = () => {
         },
         onError: (errors) => {
             console.error('Order creation failed:', errors);
+            alert('Failed to place order. Please try again.');
         }
     });
 };

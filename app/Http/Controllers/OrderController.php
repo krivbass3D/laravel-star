@@ -32,9 +32,21 @@ class OrderController extends Controller
         ]);
 
         try {
-            $this->orderService->createOrder($request->all());
+            $orderData = [
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'city' => $request->city,
+                'postal_code' => $request->postal_code,
+                'total' => $request->total,
+                'items' => $request->items
+            ];
+
+            $this->orderService->createOrder($orderData);
             return redirect()->route('home')->with('success', 'Order placed successfully! Check your email for confirmation.');
         } catch (\Exception $e) {
+            \Log::error('Order creation failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to place order. Please try again.');
         }
     }

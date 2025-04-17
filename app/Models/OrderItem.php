@@ -14,13 +14,11 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'quantity',
-        'price',
-        'subtotal'
+        'price'
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'subtotal' => 'decimal:2'
+        'price' => 'decimal:2'
     ];
 
     public function order(): BelongsTo

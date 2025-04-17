@@ -37,8 +37,7 @@ class OrderRepository extends BaseRepository
             $order->items()->create([
                 'product_id' => $item['id'],
                 'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'subtotal' => $item['price'] * $item['quantity']
+                'price' => $item['price']
             ]);
         }
 
