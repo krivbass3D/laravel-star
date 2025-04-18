@@ -33,7 +33,12 @@
                     <tr v-for="product in products.data" :key="product.id">
                         <td class="border px-4 py-2">{{ product.id }}</td>
                         <td class="border px-4 py-2">
-                            <img :src="'/storage/' + product.image" alt="Product image" class="w-16 h-16 object-cover">
+                            <img 
+                                :src="getImageUrl(product.image)" 
+                                :alt="product.title"
+                                @error="$event.target.src = '/storage/products/noimage.jpg'"
+                                class="w-16 h-16 object-cover"
+                            >
                         </td>
                         <td class="border px-4 py-2">{{ product.title }}</td>
                         <td class="border px-4 py-2">${{ product.price }}</td>
@@ -64,17 +69,17 @@
                 <form @submit.prevent="submitForm" class="space-y-4">
                     <div>
                         <label class="block mb-1">Title</label>
-                        <input v-model="form.title" type="text" class="w-full border rounded p-2">
+                        <input v-model="form.title" type="text" class="w-full border rounded p-2" required>
                         <span v-if="errors.title" class="text-red-500 text-sm">{{ errors.title }}</span>
                     </div>
                     <div>
                         <label class="block mb-1">Price</label>
-                        <input v-model="form.price" type="number" step="0.01" class="w-full border rounded p-2">
+                        <input v-model="form.price" type="number" step="0.01" class="w-full border rounded p-2" required>
                         <span v-if="errors.price" class="text-red-500 text-sm">{{ errors.price }}</span>
                     </div>
                     <div>
                         <label class="block mb-1">Category</label>
-                        <select v-model="form.category_id" class="w-full border rounded p-2">
+                        <select v-model="form.category_id" class="w-full border rounded p-2" required>
                             <option value="">Select Category</option>
                             <option v-for="category in categories" :key="category.id" :value="category.id">
                                 {{ category.name }}
@@ -91,15 +96,24 @@
                         <label class="block mb-1">Image{{ !isEditing ? ' *' : '' }}</label>
                         <div class="space-y-2">
                             <div v-if="isEditing && form.current_image" class="mb-2">
-                                <img :src="'/storage/' + form.current_image" alt="Current product image" class="w-32 h-32 object-cover rounded">
+                                <img 
+                                    :src="getImageUrl(form.current_image)" 
+                                    :alt="form.title"
+                                    @error="$event.target.src = '/storage/products/noimage.jpg'"
+                                    class="w-32 h-32 object-cover rounded"
+                                >
                             </div>
-                            <input type="file" @change="handleImageUpload" accept="image/*" class="w-full border rounded p-2">
+                            <input type="file" @change="handleImageUpload" accept="image/*" class="w-full border rounded p-2" :required="!isEditing">
                             <span v-if="errors.image" class="text-red-500 text-sm">{{ errors.image }}</span>
                             <span v-if="!isEditing" class="text-gray-500 text-sm">Image is required for new products</span>
                         </div>
                     </div>
                     <div class="flex items-center">
-                        <input v-model="form.is_active" type="checkbox" class="mr-2">
+                        <input 
+                            v-model="form.is_active"
+                            type="checkbox"
+                            class="mr-2"
+                        >
                         <label>Active</label>
                         <span v-if="errors.is_active" class="text-red-500 text-sm ml-2">{{ errors.is_active }}</span>
                     </div>
@@ -152,7 +166,7 @@ const form = ref({
     description: '',
     price: '',
     category_id: '',
-    is_active: true,
+    is_active: false,
     image: null,
     current_image: null
 });
@@ -186,7 +200,7 @@ const openCreateModal = () => {
         description: '',
         price: '',
         category_id: '',
-        is_active: true,
+        is_active: false,
         image: null,
         current_image: null
     };
@@ -194,18 +208,20 @@ const openCreateModal = () => {
 };
 
 const editProduct = (product) => {
+    console.log('Product data:', product); // Для отладки
     isEditing.value = true;
     form.value = {
         id: product.id,
-        title: product.title || '',
-        slug: product.slug || generateSlug(product.title || '', product.category_id),
+        title: product.title,
+        slug: product.slug,
         description: product.description || '',
-        price: product.price?.toString() || '',
-        category_id: product.category_id ? String(product.category_id) : '',
-        is_active: Boolean(product.is_active),
+        price: product.price,
+        category_id: product.category_id,
+        is_active: Boolean(Number(product.is_active)),
         image: null,
         current_image: product.image
     };
+    console.log('Form data after edit:', form.value); // Для отладки
     showModal.value = true;
 };
 
@@ -220,7 +236,7 @@ const closeModal = () => {
         description: '',
         price: '',
         category_id: '',
-        is_active: true,
+        is_active: false,
         image: null,
         current_image: null
     };
@@ -231,58 +247,41 @@ const handleImageUpload = (e) => {
     form.value.image = file;
 };
 
-const submitForm = async () => {
+const submitForm = () => {
     errors.value = {};
+    console.log('Form data before submit:', form.value); // Для отладки
 
-    if (!form.value.title?.trim()) {
-        errors.value.title = 'The title field is required.';
-        return;
-    }
-    if (!form.value.price) {
-        errors.value.price = 'The price field is required.';
-        return;
-    }
-    if (!form.value.category_id) {
-        errors.value.category_id = 'The category field is required.';
-        return;
-    }
+    const formData = new FormData();
 
-    try {
-        const formData = new FormData();
+    if (isEditing.value) {
         formData.append('_method', 'PUT');
-        formData.append('title', form.value.title);
-        formData.append('slug', form.value.slug);
-        formData.append('price', form.value.price);
-        formData.append('category_id', form.value.category_id);
-        formData.append('description', form.value.description || '');
-        formData.append('is_active', form.value.is_active ? '1' : '0');
-        
-        if (form.value.image) {
-            formData.append('image', form.value.image);
-        }
-        
-        if (form.value.current_image) {
-            formData.append('current_image', form.value.current_image);
-        }
-
-        const url = isEditing.value 
-            ? `/admin/products/${form.value.id}`
-            : '/admin/products';
-
-        await router.post(url, formData, {
-            preserveScroll: true,
-            onSuccess: () => {
-                closeModal();
-                window.location.reload();
-            },
-            onError: (errors) => {
-                errors.value = errors;
-            }
-        });
-    } catch (error) {
-        console.error('Error submitting form:', error);
-        errors.value.submit = 'An error occurred while submitting the form.';
     }
+    
+    formData.append('title', form.value.title);
+    formData.append('slug', form.value.slug);
+    formData.append('price', form.value.price);
+    formData.append('category_id', form.value.category_id);
+    formData.append('description', form.value.description || '');
+    formData.append('is_active', form.value.is_active ? 1 : 0);
+
+    if (form.value.image) {
+        formData.append('image', form.value.image);
+    }
+
+    const url = isEditing.value 
+        ? `/admin/products/${form.value.id}`
+        : '/admin/products';
+
+    router.post(url, formData, {
+        onSuccess: () => {
+            closeModal();
+            window.location.reload();
+        },
+        onError: (errors) => {
+            console.error('Form errors:', errors);
+            errors.value = errors;
+        }
+    });
 };
 
 const deleteProduct = (id) => {
@@ -293,8 +292,24 @@ const deleteProduct = (id) => {
     }
 };
 
+// Функция для получения URL изображения
+const getImageUrl = (path) => {
+    if (!path) return '';
+    
+    // Удаляем лишние части пути, если они есть
+    let cleanPath = path;
+    if (cleanPath.includes('http://')) {
+        cleanPath = cleanPath.split('http://')[1].split('/storage/products/')[1];
+    }
+    if (cleanPath.startsWith('products/')) {
+        cleanPath = cleanPath.substring(9);
+    }
+    
+    return `/storage/products/${cleanPath}`;
+};
+
 watch([perPage, search], ([newPerPage, newSearch]) => {
-    router.get(ROUTES.ADMIN.PRODUCTS, {
+    router.get('/admin/products', {
         per_page: newPerPage,
         search: newSearch
     }, {

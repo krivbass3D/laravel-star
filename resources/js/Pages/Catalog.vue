@@ -5,7 +5,11 @@
             <div class="container mx-auto px-4">
                 <div class="flex items-center justify-between py-4">
                     <!-- Logo -->
-                    <div class="text-xl font-bold">Logo</div>
+                    <div class="text-xl font-bold">
+                        <Link :href="ROUTES.HOME" class="text-white hover:text-gray-300">
+                            Logo
+                        </Link>
+                    </div>
                     
                     <!-- Navigation -->
                     <nav class="hidden md:flex items-center space-x-8">
@@ -210,13 +214,13 @@
 
 <script setup>
 import Pagination from '@/Components/Pagination.vue';
-import { Head } from '@inertiajs/vue3';
-import { router } from '@inertiajs/vue3';
+import { Head, usePage, router } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useCartStore } from '@/Stores/cartStore';
 import { ROUTES } from '../constants/routes';
 
+const page = usePage();
 const showMoreCategories = ref(false);
 const searchQuery = ref('');
 const searchTimeout = ref(null);
@@ -275,7 +279,7 @@ const formatPrice = (price) => {
 const filterByCategory = (categoryId) => {
     showMoreCategories.value = false;
     const currentPage = new URL(window.location.href).searchParams.get('page');
-    router.get(route('home'), { 
+    router.get(ROUTES.HOME, { 
         ...props.filters,
         category: categoryId,
         page: currentPage
@@ -299,7 +303,7 @@ const updatePriceFilter = () => {
 // Применяем фильтр только когда пользователь отпускает ползунок
 const applyPriceFilter = () => {
     const currentPage = new URL(window.location.href).searchParams.get('page');
-    router.get(route('home'), {
+    router.get(ROUTES.HOME, {
         ...props.filters,
         min_price: priceFilter.value.min,
         max_price: priceFilter.value.max,
@@ -315,14 +319,14 @@ const clearFilters = () => {
         min: props.priceRange.min,
         max: props.priceRange.max
     };
-    router.get(route('home'), {}, {
+    router.get(ROUTES.HOME, {}, {
         preserveState: true,
         preserveScroll: true
     });
 };
 
 const logout = () => {
-    router.post(route('logout'));
+    router.post(ROUTES.LOGOUT);
 };
 
 const addToCart = (product) => {
@@ -333,7 +337,7 @@ const addToCart = (product) => {
 
 const handleSort = () => {
     const currentPage = new URL(window.location.href).searchParams.get('page');
-    router.get(route('home'), { 
+    router.get(ROUTES.HOME, { 
         ...props.filters,
         sort: sortOption.value,
         page: currentPage
@@ -347,7 +351,7 @@ const handleSearch = () => {
     clearTimeout(searchTimeout.value);
     searchTimeout.value = setTimeout(() => {
         const currentPage = new URL(window.location.href).searchParams.get('page');
-        router.get(route('home'), { 
+        router.get(ROUTES.HOME, { 
             ...props.filters,
             search: searchQuery.value,
             sort: sortOption.value,

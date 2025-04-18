@@ -108,11 +108,10 @@ const pageRange = computed(() => {
 });
 
 const changePage = (page) => {
-
     const url = new URL(window.location.href);
     const params = Object.fromEntries(url.searchParams.entries());
 
-    router.get(route('home'), { 
+    router.get(url.pathname, { 
         ...params,
         page: page 
     }, {
